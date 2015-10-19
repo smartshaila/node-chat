@@ -5,11 +5,9 @@
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
         <style>
             * { margin: 0; padding: 0; box-sizing: border-box; }
-            body { font: 13px Helvetica, Arial; }
-            #chatting form { background: #000; position: fixed; bottom: 0; width: 100%; }
-            form { padding: 3px; }
-            #chatting form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
-            #chatting form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
+            html, body { font: 13px Helvetica, Arial; height:100%; }
+            #chat form { background: #eeeeee; padding: 10px; width: 100%; }
+            form { padding: 5px; }
             #messages { list-style-type: none; margin: 0; padding: 0; }
             #messages li { padding: 5px 10px; }
             #messages li:nth-child(odd) { background: #eee;}
@@ -21,15 +19,18 @@
         <script>
             $().ready(function() {
                 $('#userform').on('submit', function(){
-                    $('#chatting').toggle();
+                    $('#chat').toggle();
                     $('#login').toggle();
                     start_socket($('#username').val());
                     return false;
                 });
 
+                $('#username').val(window.localStorage.username);
+
                 function start_socket(username) {
                     socket = io();
                     socket.emit('set username', username);
+                    window.localStorage.setItem('username', username);
                     socket.on('chat message', function(msg){
                         $('#messages').append($('<li>').text(msg));
                     });
@@ -37,9 +38,12 @@
                         $('#messages').append($('<li>').addClass('status').text(msg));
                     });
                     socket.on('user list', function(userlist) {
-                        console.log(userlist);
+                        $('#userlist').html('');
+                        userlist.forEach(function(user) {
+                            $('#userlist').append($('<li>').text(user));
+                        });
                     });
-                    $('#chatting').on('submit', function() {
+                    $('#chat').on('submit', function() {
                         socket.emit('chat message', $('#message').val());
                         $('#message').val('');
                         return false;
@@ -55,10 +59,22 @@
                 <button class="btn btn-primary" id="connect">Connect</button>
             </form>
         </div>
-        <div id="chatting" style="display: none">
-            <ul id="messages"></ul>
-            <form action="">
-                <input id="message" autocomplete="off" /><button>Send</button>
+        <div id="chat" class="container-fluid" style="display: none">
+            <div class="row">
+                <div class="col-md-10">
+                    <ul id="messages"></ul>
+                </div>
+                <div class="col-md-2">
+                    <ul id="userlist"></ul>
+                </div>
+            </div>
+            <form action="" class="form-horizontal navbar-fixed-bottom">
+                <div class="input-group">
+                    <input class="form-control input-lg" type="text" id="message" autocomplete="off" />
+                        <span class="input-group-btn">
+                            <button class="btn btn-success btn-lg">Send</button>
+                        </span>
+                </div>
             </form>
         </div>
     </body>
